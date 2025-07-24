@@ -1,0 +1,63 @@
+[gd_scene load_steps=8 format=4 uid="uid://bfkoqsh5miua4"]
+
+[ext_resource type="Script" uid="uid://derfroo6ub774" path="res://assets/scripts/main_3d.gd" id="1_oqwy6"]
+[ext_resource type="Shader" uid="uid://beqbahu26eeip" path="res://assets/shaders/particle_shader_3d.gdshader" id="2_2hqdd"]
+
+[sub_resource type="Texture2DRD" id="Texture2DRD_2hqdd"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8nk23"]
+shader = ExtResource("2_2hqdd")
+shader_parameter/particle_data = SubResource("Texture2DRD_2hqdd")
+shader_parameter/scale = 1.0
+shader_parameter/colors = PackedVector4Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2hqdd"]
+vertex_color_use_as_albedo = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_2hqdd"]
+material = SubResource("StandardMaterial3D_2hqdd")
+radial_segments = 32
+rings = 16
+
+[sub_resource type="Environment" id="Environment_8nk23"]
+background_mode = 1
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.1
+
+[node name="main3D" type="Node3D"]
+script = ExtResource("1_oqwy6")
+particle_boundry = Vector3(125, 125, 125)
+particle_amount = 6000
+max_distance = 8.0
+particle_color = PackedColorArray(1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1)
+
+[node name="GPUParticles" type="GPUParticles3D" parent="."]
+lifetime = 0.01
+process_material = SubResource("ShaderMaterial_8nk23")
+draw_pass_1 = SubResource("SphereMesh_2hqdd")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_8nk23")
+
+[node name="FreeCam" type="Node3D" parent="."]
+
+[node name="Camera" type="Camera3D" parent="FreeCam"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 5, 0)
+shadow_enabled = true
+
+[node name="Stats" type="CanvasLayer" parent="."]
+layer = 90
+
+[node name="FPS" type="Label" parent="Stats"]
+offset_right = 44.0
+offset_bottom = 25.0
+text = " FPS:"
+
+[node name="DT" type="Label" parent="Stats"]
+offset_top = 25.0
+offset_right = 44.0
+offset_bottom = 50.0
+text = " Delta Time:"

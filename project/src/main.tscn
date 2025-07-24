@@ -1,0 +1,128 @@
+[gd_scene load_steps=10 format=4 uid="uid://b3d58v85fvxni"]
+
+[ext_resource type="Script" uid="uid://ob1nanhovwm6" path="res://assets/scripts/main.gd" id="1_eewff"]
+[ext_resource type="Texture2D" uid="uid://wu6k7b5rik6" path="res://assets/sprites/particle.png" id="2_5q4o7"]
+[ext_resource type="Shader" uid="uid://bv0o3udokw2u2" path="res://assets/shaders/particle_shader.gdshader" id="3_3cfgd"]
+[ext_resource type="Shader" uid="uid://tvw480xcprnp" path="res://assets/shaders/compute_output.gdshader" id="4_3cfgd"]
+[ext_resource type="Theme" uid="uid://cv2p0fb3cqxga" path="res://assets/themes/debug.tres" id="5_fyndt"]
+
+[sub_resource type="Texture2DRD" id="Texture2DRD_5q4o7"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fyndt"]
+shader = ExtResource("3_3cfgd")
+shader_parameter/particle_data = SubResource("Texture2DRD_5q4o7")
+shader_parameter/scale = 0.1
+shader_parameter/colors = PackedVector4Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+[sub_resource type="Texture2DRD" id="Texture2DRD_fyndt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kmhfv"]
+shader = ExtResource("4_3cfgd")
+shader_parameter/rendered_image = SubResource("Texture2DRD_fyndt")
+shader_parameter/rows = 80.0
+shader_parameter/range = 4000.0
+shader_parameter/col_amount = 6.0
+shader_parameter/display = Vector4(0, 0, 0, 0)
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_eewff")
+particle_color = PackedColorArray(1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1)
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+amount = 100
+texture = ExtResource("2_5q4o7")
+lifetime = 0.01
+fixed_fps = 60
+visibility_rect = Rect2(0, 0, 200, 200)
+process_material = SubResource("ShaderMaterial_fyndt")
+
+[node name="Stats" type="CanvasLayer" parent="."]
+layer = 90
+
+[node name="FPS" type="Label" parent="Stats"]
+offset_right = 44.0
+offset_bottom = 25.0
+text = " FPS:"
+
+[node name="DT" type="Label" parent="Stats"]
+offset_top = 25.0
+offset_right = 44.0
+offset_bottom = 50.0
+text = " Delta Time:"
+
+[node name="Buffer" type="Label" parent="Stats"]
+offset_top = 50.0
+offset_right = 92.0
+offset_bottom = 75.0
+text = " Buffer:"
+
+[node name="BufferView" type="ColorRect" parent="Stats"]
+material = SubResource("ShaderMaterial_kmhfv")
+offset_left = 6.0
+offset_top = 75.0
+offset_right = 582.0
+offset_bottom = 195.0
+metadata/_edit_use_anchors_ = true
+
+[node name="Buffer Settings" type="PanelContainer" parent="Stats"]
+offset_left = 6.0
+offset_top = 205.0
+offset_right = 148.0
+offset_bottom = 282.0
+theme = ExtResource("5_fyndt")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Stats/Buffer Settings"]
+layout_mode = 2
+
+[node name="Pos_X" type="HBoxContainer" parent="Stats/Buffer Settings/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Stats/Buffer Settings/VBoxContainer/Pos_X"]
+layout_mode = 2
+text = "Pos X:"
+
+[node name="Control" type="Control" parent="Stats/Buffer Settings/VBoxContainer/Pos_X"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CheckBox" type="CheckBox" parent="Stats/Buffer Settings/VBoxContainer/Pos_X"]
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("5_fyndt")
+
+[node name="Pos_Y" type="HBoxContainer" parent="Stats/Buffer Settings/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Stats/Buffer Settings/VBoxContainer/Pos_Y"]
+layout_mode = 2
+text = "Pos Y:"
+
+[node name="Control" type="Control" parent="Stats/Buffer Settings/VBoxContainer/Pos_Y"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CheckBox" type="CheckBox" parent="Stats/Buffer Settings/VBoxContainer/Pos_Y"]
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("5_fyndt")
+
+[node name="Type" type="HBoxContainer" parent="Stats/Buffer Settings/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Stats/Buffer Settings/VBoxContainer/Type"]
+layout_mode = 2
+text = "Type: "
+
+[node name="Control" type="Control" parent="Stats/Buffer Settings/VBoxContainer/Type"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CheckBox" type="CheckBox" parent="Stats/Buffer Settings/VBoxContainer/Type"]
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("5_fyndt")
+
+[node name="Camera" type="Camera2D" parent="."]

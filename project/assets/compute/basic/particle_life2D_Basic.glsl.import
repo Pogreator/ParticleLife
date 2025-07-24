@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dv62skbb3wk6i"
+path="res://.godot/imported/particle_life2D_Basic.glsl-578f58e8e8f38db24a28f504a3b6c4c3.res"
+
+[deps]
+
+source_file="res://assets/compute/basic/particle_life2D_Basic.glsl"
+dest_files=["res://.godot/imported/particle_life2D_Basic.glsl-578f58e8e8f38db24a28f504a3b6c4c3.res"]
+
+[params]
+

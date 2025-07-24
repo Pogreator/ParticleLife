@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dsftbscsgwd5k"
+path="res://.godot/imported/particle_life.glsl-184b1d14c7352e499efe65e49367e095.res"
+
+[deps]
+
+source_file="res://assets/compute/particle_life.glsl"
+dest_files=["res://.godot/imported/particle_life.glsl-184b1d14c7352e499efe65e49367e095.res"]
+
+[params]
+
