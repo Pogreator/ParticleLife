@@ -14,9 +14,17 @@ config/name="Particle Life"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Marksman_Terminal="*res://addons/marksman_terminal/Console.gd"
+
 [display]
 
 window/vsync/vsync_mode=0
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/marksman_terminal/plugin.cfg")
 
 [input]
 

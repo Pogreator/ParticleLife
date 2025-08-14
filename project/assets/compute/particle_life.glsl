@@ -1,7 +1,7 @@
 #[compute]
 #version 450
 
-layout(set = 0, binding = 0, std430) restrict buffer Params {
+layout(set = 0, binding = 0, std430) readonly buffer Params {
     float boundry_x;
     float boundry_y;
     float particle_amount;
@@ -42,7 +42,6 @@ layout(set = 0, binding = 7, std430) buffer Spatial {
 }
 spatial;
 
-
 layout(set = 0, binding = 8, std430) buffer StartIndicies {
     int data[];
 }
@@ -50,22 +49,22 @@ start_indicies;
 
 layout(rgba32f, binding = 9) uniform image2D particle_data;
 
-layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 const int hashk1 = 15823;
-const int hashk2 = 9737333;
+const int hashk2 = 12582917;
 
 const ivec2 offsets2D[9] =
 {
-	ivec2(-1, 1),
-	ivec2(0, 1),
 	ivec2(1, 1),
-	ivec2(-1, 0),
-	ivec2(0, 0),
-	ivec2(1, 0),
-	ivec2(-1, -1),
-	ivec2(0, -1),
+    ivec2(1, 0),
 	ivec2(1, -1),
+	ivec2(0, 1),
+	ivec2(0, 0),
+	ivec2(0, -1),
+	ivec2(-1, 1),
+	ivec2(-1, 0),
+	ivec2(-1, -1),
 };
 
 ivec2 getCell(vec2 position){
@@ -73,12 +72,12 @@ ivec2 getCell(vec2 position){
 }
 
 int hashCell(int cell_x, int cell_y){ 
-   int hash = (cell_x*hashk1) + (cell_y*hashk2);
+   int hash = (cell_x*hashk1*hashk2) + (cell_y*hashk1*hashk2);
    return hash;
 }
 
 int keyHash(int hash){
-    int key = hash % 10;
+    int key = hash % 100;
     return key;
 }
 
@@ -100,7 +99,7 @@ ivec2 search_Start(int value){
     
     int value_start = start_indicies.data[(value*2)+1];
 
-    if (value < 9){ 
+    if (value < 99){
         array_end = start_indicies.data[(value*2)+3];
     }
 
@@ -109,10 +108,15 @@ ivec2 search_Start(int value){
 
 void main() {
 
-    int id = int(gl_GlobalInvocationID.x); // Id is based on worker for X
-
+    int id = int(gl_GlobalInvocationID.x);
 
     if (id >= int(params.particle_amount)) return;
+
+    int spatial_id = spatial.data[id].x;
+
+    pos.data[id] = pos.data[spatial_id];
+    vel.data[id] = vel.data[spatial_id];
+    type.data[id] = type.data[spatial_id];
 
     // Total forces for the current particle
 
@@ -121,41 +125,48 @@ void main() {
 
     ivec2 own_cell = getCell(pos.data[id]);
 
+    int key_array[9]; for(int i = 0; i < 9; i++) key_array[i] = -1;
+
     for (int i = 0; i < 9; i++){
-        int neighbour_x = own_cell.x + offsets2D[i].x;
-        int neighbour_y = own_cell.y + offsets2D[i].y;
+
+        int neighbour_x = own_cell.x - offsets2D[i].x;
+        int neighbour_y = own_cell.y - offsets2D[i].y;
 
         int hash = hashCell(neighbour_x,neighbour_y);
         int key = keyHash(hash);
+        key_array[i] = key;
 
-        ivec2 spatial_lookup = search_Start(key);
+        int skip = 0;
 
-        int k = spatial_lookup.x;
-
-        while (k < spatial_lookup.y){
-
-            k++;
-
-            int kid = int(spatial.data[k].x);
-
-            if (id == kid) continue;
-
-            float attract = attract_table.data[(int(params.attract_root) * type.data[id]) + type.data[kid]]; // Attraction value between particles 
-            
-            float distx = pos.data[kid].x - pos.data[id].x; // Get the distance x and y, used later for resolving direction
-            float disty = pos.data[kid].y - pos.data[id].y;   
-
-            float dist = sqrt(pow(distx,2) + pow(disty,2)); // Pythag, simple
-
-            if (0.0 < dist && dist < params.max_dist){ 
-                float attraction = force(dist/params.max_dist,attract);
-
-                total_force_x += distx/dist*attraction; // Add to force based on the attraction index and distance
-                total_force_y += disty/dist*attraction;
-            }
-
+        for (int k = 0; k < 9; k++){
+            if (key_array[i] == key_array[k] && i != k) skip = 1;
         }
 
+        if (skip == 0) {
+
+            ivec2 spatial_lookup = search_Start(key);
+
+            for (int k = spatial_lookup.x; k <= spatial_lookup.y; k++){
+
+                int kid = int(spatial.data[k].x);
+
+                if (id == kid) continue;
+
+                float attract = attract_table.data[(int(params.attract_root) * type.data[id]) + type.data[kid]]; // Attraction value between particles
+
+                float distx = pos.data[kid].x - pos.data[id].x; // Get the distance x and y, used later for resolving direction
+                float disty = pos.data[kid].y - pos.data[id].y;
+
+                float dist = sqrt(pow(distx,2) + pow(disty,2)); // Pythag, simple
+
+                if (0.0 < dist && dist < params.max_dist){
+                    float attraction = force(dist/params.max_dist,attract);
+
+                    total_force_x += distx/dist*attraction; // Add to force based on the attraction index and distance
+                    total_force_y += disty/dist*attraction;
+                }
+            }
+        }
     }
     
     total_force_x *= params.max_dist*params.force_factor;
@@ -175,9 +186,11 @@ void main() {
     else if (pos.data[id].y < 0.0){ vel.data[id].y = -vel.data[id].y; pos.data[id].y = 1.0; }
     else if (pos.data[id].y > params.boundry_y){ pos.data[id].y = -vel.data[id].y; pos.data[id].y = params.boundry_y-1.0; }
 
-    ivec2 pixel_pos = ivec2(id,0);
+    ivec2 pixel_pos = ivec2(mod(id,sqrt(params.particle_amount)), id / sqrt(params.particle_amount));
 
     // Store the data on to the particle_data image buffer
+
+    memoryBarrier();
 
     imageStore(particle_data,pixel_pos,vec4(pos.data[id].x,pos.data[id].y,float(type.data[id]),0.0));
 }

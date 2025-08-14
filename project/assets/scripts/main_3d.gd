@@ -44,23 +44,26 @@ func _gen_snake():
 
 func _ready():
 	
+	$FreeCam.position = particle_boundry/2.0
+	
+	var terminal = get_tree().root.get_node("Marksman_Terminal")
+	if terminal != null:
+		terminal.add_command("reset",_load,[])
+	
+	_load()
+
+
+func _load():
 	_gen_random()
 		
-	#_create_compute2("particle_life", "spatial_hash")
 	_create_compute1("basic/particle_life3D_Basic")
 	
-	# Camera!
-	$FreeCam.position = particle_boundry/2.0
 	# Get Particle 2D ready
 	$GPUParticles.visibility_aabb = AABB(Vector3.ZERO,particle_boundry)
 	
 	$GPUParticles.amount = particle_amount
 	$GPUParticles.process_material.set_shader_parameter("colors",particle_color)
 	$GPUParticles.process_material.get_shader_parameter("particle_data").texture_rd_rid = particle_data
-	
-	# Debug things
-	#$Stats/BufferView.material.get_shader_parameter("rendered_image").texture_rd_rid = particle_data
-	
 
 func _input(event):
 	
@@ -99,7 +102,7 @@ func _process(delta):
 	var compute_list1 := rd.compute_list_begin()
 	rd.compute_list_bind_compute_pipeline(compute_list1, pipeline1)
 	rd.compute_list_bind_uniform_set(compute_list1, uniform_set1, 0)
-	rd.compute_list_dispatch(compute_list1, ceili(float(particle_amount)/128.0), 1, 1)
+	rd.compute_list_dispatch(compute_list1, ceili(float(particle_amount)), 1, 1)
 	rd.compute_list_end()
 	
 	rd.buffer_update(globals_buffer,0,4,packed_delta_time)

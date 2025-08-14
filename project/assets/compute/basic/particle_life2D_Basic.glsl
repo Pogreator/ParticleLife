@@ -67,8 +67,6 @@ void main() {
     float total_force_x = 0.0;
     float total_force_y = 0.0;
 
-
-
     for (int k = 0; k < int(params.particle_amount); k++){
 
         if (id == k) continue;
@@ -106,7 +104,7 @@ void main() {
     else if (pos.data[id].y < 0.0){ vel.data[id].y = -vel.data[id].y; pos.data[id].y = 1.0; }
     else if (pos.data[id].y > params.boundry_y){ pos.data[id].y = -vel.data[id].y; pos.data[id].y = params.boundry_y-1.0; }
 
-    ivec2 pixel_pos = ivec2(id,0);
+    ivec2 pixel_pos = ivec2(mod(id,sqrt(params.particle_amount)), id / sqrt(params.particle_amount));
 
     // Store the data on to the particle_data image buffer
 

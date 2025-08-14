@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var particle_boundry := Vector2(4000,4000)
-@export var particle_amount := 8000
+@export var particle_amount := 6400
 @export var max_distance := 80.
 @export var friction_factor := 0.75
 @export var force_factor := 100.
@@ -29,13 +29,18 @@ var start_buffer
 var particle_data
 
 func _ready():
-	
+	var terminal = get_tree().root.get_node("Marksman_Terminal")
+	if terminal != null:
+		terminal.add_command("reset",_load,[])
+	_load()
+
+func _load():
 	for i in range(len(particle_color)):
 		for k in range(len(particle_color)):
 			particle_attract.append(randf_range(-1.0,1.0))
 		
-	#_create_compute2("particle_life", "spatial_hash")
-	_create_compute1("basic/particle_life2D_Basic")
+	_create_compute2("particle_life", "spatial_hash")
+	#_create_compute1("basic/particle_life2D_Basic")
 	
 	# Camera!
 	$Camera.position = particle_boundry/2.0
@@ -48,7 +53,6 @@ func _ready():
 	
 	# Debug things
 	$Stats/BufferView.material.get_shader_parameter("rendered_image").texture_rd_rid = particle_data
-	
 
 func _input(event):
 	
@@ -77,18 +81,29 @@ func _process(delta):
 	
 	var packed_delta_time = PackedFloat32Array([delta]).to_byte_array()
 	
-	#var compute_list2 := rd.compute_list_begin()
-	#rd.compute_list_bind_compute_pipeline(compute_list2, pipeline2)
-	#rd.compute_list_bind_uniform_set(compute_list2, uniform_set2, 0)
-	#rd.compute_list_dispatch(compute_list2, ceili(float(particle_amount)/1024.0), 1, 1)
-	#rd.compute_list_end()
+	var keys = rd.buffer_get_data(cell_buffer).to_float32_array()
+	var start = rd.buffer_get_data(start_buffer).to_int32_array()
+	#var i = 0;
+	#var temp = []
+	#while i < keys.size():
+		#temp.append(keys[i])
+		#i+=3;
+	#print(temp)
+	
+	var compute_list2 := rd.compute_list_begin()
+	rd.compute_list_bind_compute_pipeline(compute_list2, pipeline2)
+	rd.compute_list_bind_uniform_set(compute_list2, uniform_set2, 0)
+	rd.compute_list_dispatch(compute_list2, ceili(particle_amount/32), 1, 1)
+	rd.compute_list_end()
 	
 	var compute_list1 := rd.compute_list_begin()
 	rd.compute_list_bind_compute_pipeline(compute_list1, pipeline1)
 	rd.compute_list_bind_uniform_set(compute_list1, uniform_set1, 0)
-	rd.compute_list_dispatch(compute_list1, ceili(float(particle_amount)/128.0), 1, 1)
+	rd.compute_list_dispatch(compute_list1, ceili(particle_amount/32), 1, 1)
 	rd.compute_list_end()
 	
+	#print(keys[0]," ",keys[1]," ",keys[2])
+	#print(start)
 	rd.buffer_update(globals_buffer,0,4,packed_delta_time)
 
 func _ui():
@@ -166,8 +181,8 @@ func _create_compute1(file1:String):
 	
 	# Texture Buffers
 	var fmt := RDTextureFormat.new()
-	fmt.width = particle_amount
-	fmt.height = 1
+	fmt.width = sqrt(particle_amount)
+	fmt.height = sqrt(particle_amount)
 	fmt.format = RenderingDevice.DATA_FORMAT_R32G32B32A32_SFLOAT
 	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_CAN_UPDATE_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT | RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_CAN_COPY_FROM_BIT
 	var view := RDTextureView.new()
@@ -293,8 +308,8 @@ func _create_compute2(file1:String,file2:String):
 	
 	# Texture Buffers
 	var fmt := RDTextureFormat.new()
-	fmt.width = particle_amount
-	fmt.height = 1
+	fmt.width = sqrt(particle_amount)
+	fmt.height = sqrt(particle_amount)
 	fmt.format = RenderingDevice.DATA_FORMAT_R32G32B32A32_SFLOAT
 	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_CAN_UPDATE_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT | RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_CAN_COPY_FROM_BIT
 	var view := RDTextureView.new()
@@ -327,17 +342,16 @@ func _create_compute2(file1:String,file2:String):
 func _init_spatial(positions:PackedVector2Array):
 	var spatial_data = []
 	for i in range(len(positions)):
-		var int_pos = Vector2i(positions[i])
 		
-		var cell = int_pos / int(max_distance)
-		var hash_value = (cell.x*15823) + (cell.y*9737333)
-		var key = hash_value % 10
+		var cell : Vector2i = floor(positions[i] / max_distance)
+		var hash_value = (cell.x*15823*12582917) + (cell.y*15823*12582917)
+		var key = hash_value % 100
 		
 		spatial_data.append(Vector3i(i,hash_value,key))
 	
-	spatial_data.sort_custom(func(a,b): return a.z < b.z)
+	spatial_data.sort_custom(func(a,b): return a.x < b.x)
 	
-	return convert(spatial_data,TYPE_PACKED_VECTOR3_ARRAY)
+	return spatial_data
 	
 func _init_start(spatial_data:PackedVector3Array):
 	var start = PackedInt32Array()
@@ -347,5 +361,4 @@ func _init_start(spatial_data:PackedVector3Array):
 			start.append(int(spatial_data[i].z))
 			start.append(i)
 			last_instance = int(spatial_data[i].z)
-	
 	return start
